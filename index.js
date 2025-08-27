@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { Client, Collection, Events, REST, Routes, GatewayIntentBits } from 'discord.js';
+import { startLockJob } from './jobs/lockUpcomingMatches.js';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import os from 'os';
@@ -49,6 +50,8 @@ mongoose.connect(mongoUri, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 }).then(() => console.log('Connected to MongoDB')).catch((error) => {console.error('MongoDB connection error:', error)});
+
+startLockJob();
 
 // Discord login and command registration
 const token = process.env.TOKEN;
