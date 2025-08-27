@@ -44,11 +44,11 @@ for (const file of commandFiles) {
 
 // MongoDB connection
 const mongoUri = process.env.MONGO_URI;
+
 mongoose.connect(mongoUri, {
   useNewUrlParser: true,
-  useUnifiedTopology: true,
-}).then(() => console.log('Connected to MongoDB'))
-  .catch(error => console.error('MongoDB connection error:', error));
+  useUnifiedTopology: true
+}).then(() => console.log('Connected to MongoDB')).catch((error) => {console.error('MongoDB connection error:', error)});
 
 // Discord login and command registration
 const token = process.env.TOKEN;
