@@ -8,18 +8,16 @@ import {
 } from 'discord.js';
 import Match from '../models/Match.js';
 
-const PAGE_SIZE = 10; // how many matches per page
+const PAGE_SIZE = 10;
 
 function statusEmoji(m) {
   if (m.status === 'completed') return '✅';
   if (new Date() >= new Date(m.lockAt) || m.status === 'locked') return '🔒';
   return '🕒';
 }
-
 function matchLine(m) {
   const base = `${statusEmoji(m)} **${m.teamA.name} vs ${m.teamB.name}** (${new Date(m.startTime).toISOString()})`;
-  if (m.status === 'completed') return `${base} — Final: ${m.scoreA}-${m.scoreB}`;
-  return base;
+  return m.status === 'completed' ? `${base} — Final: ${m.scoreA}-${m.scoreB}` : base;
 }
 
 export default {
@@ -60,7 +58,6 @@ export default {
     await interaction.deferReply({ flags: ephemeral ? 64 : undefined });
 
     try {
-      // Build query
       const now = new Date();
       const query = {};
       if (filter === 'upcoming') {
@@ -71,7 +68,6 @@ export default {
       }
       if (phase) query.phase = phase;
 
-      // Load all matching matches (we’ll paginate in-memory)
       const matches = await Match.find(query)
         .populate('teamA teamB')
         .sort({ startTime: 1 })
@@ -81,126 +77,95 @@ export default {
         return interaction.editReply('No matches found with that filter.');
       }
 
-      // Pagination helpers
       const total = matches.length;
       const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-      let index = 0; // index of the first match on the current page
+      let page = 0;
 
-      const pageFromIndex = (i) => Math.floor(i / PAGE_SIZE);
-      const sliceForIndex = (i) => {
-        const start = pageFromIndex(i) * PAGE_SIZE;
+      const pageSlice = (p) => {
+        const start = p * PAGE_SIZE;
         const end = Math.min(start + PAGE_SIZE, total);
         return matches.slice(start, end);
       };
 
-      const buildEmbed = (i) => {
-        const page = pageFromIndex(i);
-        const pageMatches = sliceForIndex(i);
-        const lines = pageMatches.map(matchLine);
-
+      const buildEmbed = (p) => {
+        const list = pageSlice(p).map(matchLine).join('\n');
         const titleFilter = filter.charAt(0).toUpperCase() + filter.slice(1);
-        const titlePhase = phase ? ` — ${phase.replace('_',' ')}` : '';
+        const titlePhase = phase ? ` — ${phase.replace('_', ' ')}` : '';
         return new EmbedBuilder()
           .setTitle(`📅 Matches (${titleFilter}${titlePhase})`)
-          .setDescription(lines.join('\n'))
-          .setFooter({ text: `Page ${page + 1}/${totalPages} • ${total} match(es)` });
+          .setDescription(list)
+          .setFooter({ text: `Page ${p + 1}/${totalPages} • ${total} match(es)` });
       };
 
-      const buildRows = (i) => {
-        const page = pageFromIndex(i);
-
-        const prevPage = new ButtonBuilder()
-          .setCustomId(`m_page_prev_${interaction.id}`)
-          .setLabel('« Page')
+      const buildRows = (p) => {
+        const prevPageBtn = new ButtonBuilder()
+          .setCustomId(`m_prevpage_${interaction.id}`)
+          .setLabel('« Prev Page')
           .setStyle(ButtonStyle.Secondary)
-          .setDisabled(page === 0);
+          .setDisabled(p === 0);
 
-        const prev = new ButtonBuilder()
-          .setCustomId(`m_prev_${interaction.id}`)
-          .setLabel('Prev')
+        const nextPageBtn = new ButtonBuilder()
+          .setCustomId(`m_nextpage_${interaction.id}`)
+          .setLabel('Next Page »')
           .setStyle(ButtonStyle.Secondary)
-          .setDisabled(i === 0);
+          .setDisabled(p >= totalPages - 1);
 
-        const next = new ButtonBuilder()
-          .setCustomId(`m_next_${interaction.id}`)
-          .setLabel('Next')
-          .setStyle(ButtonStyle.Secondary)
-          .setDisabled(i >= (total - 1));
+        // Show up to 25 page options (Discord limit). Window them if many pages.
+        const windowSize = 25;
+        const windowStart = Math.floor(p / windowSize) * windowSize;
+        const windowEnd = Math.min(windowStart + windowSize, totalPages);
 
-        const nextPage = new ButtonBuilder()
-          .setCustomId(`m_page_next_${interaction.id}`)
-          .setLabel('Page »')
-          .setStyle(ButtonStyle.Secondary)
-          .setDisabled(page >= totalPages - 1);
-
-        // Quick-jump page selector (shows up to 25 pages due to component limits)
         const options = [];
-        const startPage = 0;
-        const endPage = Math.min(totalPages, 25);
-        for (let p = startPage; p < endPage; p++) {
+        for (let i = windowStart; i < windowEnd; i++) {
           options.push({
-            label: `Page ${p + 1}`,
-            value: String(p),
-            default: p === page,
+            label: `Page ${i + 1}`,
+            value: String(i),
+            default: i === p,
           });
         }
 
         const select = new StringSelectMenuBuilder()
-          .setCustomId(`m_sel_${interaction.id}`)
-          .setPlaceholder(`Jump to page (${page + 1}/${totalPages})`)
+          .setCustomId(`m_select_${interaction.id}`)
+          .setPlaceholder(`Jump to page (${p + 1}/${totalPages})`)
           .addOptions(options);
 
         return [
           new ActionRowBuilder().addComponents(select),
-          new ActionRowBuilder().addComponents(prevPage, prev, next, nextPage),
+          new ActionRowBuilder().addComponents(prevPageBtn, nextPageBtn),
         ];
       };
 
       const message = await interaction.editReply({
-        embeds: [buildEmbed(index)],
-        components: buildRows(index),
+        embeds: [buildEmbed(page)],
+        components: buildRows(page),
       });
 
       const filterFn = (i) =>
         i.user.id === interaction.user.id &&
         (
-          i.customId === `m_sel_${interaction.id}` ||
-          i.customId === `m_prev_${interaction.id}` ||
-          i.customId === `m_next_${interaction.id}` ||
-          i.customId === `m_page_prev_${interaction.id}` ||
-          i.customId === `m_page_next_${interaction.id}`
+          i.customId === `m_select_${interaction.id}` ||
+          i.customId === `m_prevpage_${interaction.id}` ||
+          i.customId === `m_nextpage_${interaction.id}`
         );
 
       const collector = message.createMessageComponentCollector({
         filter: filterFn,
-        time: 5 * 60 * 1000, // 5 minutes
+        time: 5 * 60 * 1000,
       });
 
       collector.on('collect', async (i) => {
         try {
-          const page = pageFromIndex(index);
-
           if (i.isStringSelectMenu()) {
-            const targetPage = Math.min(Math.max(parseInt(i.values[0], 10) || 0, 0), totalPages - 1);
-            index = targetPage * PAGE_SIZE;
+            const target = parseInt(i.values[0], 10);
+            if (!Number.isNaN(target)) page = Math.min(Math.max(target, 0), totalPages - 1);
           } else if (i.isButton()) {
-            if (i.customId === `m_prev_${interaction.id}` && index > 0) {
-              index = index - 1;
-            }
-            if (i.customId === `m_next_${interaction.id}` && index < total - 1) {
-              index = index + 1;
-            }
-            if (i.customId === `m_page_prev_${interaction.id}` && page > 0) {
-              index = (page - 1) * PAGE_SIZE;
-            }
-            if (i.customId === `m_page_next_${interaction.id}` && page < totalPages - 1) {
-              index = (page + 1) * PAGE_SIZE;
-            }
+            if (i.customId === `m_prevpage_${interaction.id}` && page > 0) page -= 1;
+            if (i.customId === `m_nextpage_${interaction.id}` && page < totalPages - 1) page += 1;
           }
 
           await i.update({
-            embeds: [buildEmbed(index)],
-            components: buildRows(index),
+            embeds: [buildEmbed(page)],
+            components: buildRows(page),
           });
         } catch (err) {
           console.error(err);
