@@ -20,6 +20,9 @@ export default {
     const name = interaction.options.getString('name').trim();
     const region = interaction.options.getString('region').trim();
 
+    // Respond fast so the token doesn’t expire:
+    await interaction.deferReply({ flags: 64 }); // 64 = ephemeral (use flags instead of ephemeral: true)
+
     try {
       // Check if team already exists
       const existing = await Team.findOne({ name: new RegExp(`^${name}$`, 'i') });

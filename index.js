@@ -62,7 +62,7 @@ client.once(Events.ClientReady, async c => {
   try {
     console.log(`Registering ${commandsArray.length} application commands...`);
     await rest.put(Routes.applicationCommands(c.user.id), {
-      body: commandsArray,
+      body: commandsArray
     });
     console.log('Successfully registered application commands.');
   } catch (error) {
@@ -82,7 +82,7 @@ client.on(Events.InteractionCreate, async interaction => {
       console.error(error);
       const payload = {
         content: 'There was an error executing this command!',
-        ephemeral: true,
+        flags: 64
       };
       try {
         if (interaction.deferred) await interaction.editReply(payload);
