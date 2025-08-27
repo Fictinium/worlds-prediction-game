@@ -13,7 +13,7 @@ async function lockMatches() {
     const toLock = await Match.find({
       status: 'scheduled',
       lockAt: { $lte: now },
-    });
+    }).populate('teamA teamB');
 
     if (toLock.length > 0) {
       for (const match of toLock) {
