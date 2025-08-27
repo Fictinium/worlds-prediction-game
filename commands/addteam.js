@@ -21,22 +21,26 @@ export default {
     const region = interaction.options.getString('region').trim();
 
     // Respond fast so the token doesn’t expire:
-    await interaction.deferReply({ flags: 64 }); // 64 = ephemeral (use flags instead of ephemeral: true)
+    await interaction.deferReply({ flags: 64 });
 
     try {
       // Check if team already exists
       const existing = await Team.findOne({ name: new RegExp(`^${name}$`, 'i') });
       if (existing) {
-        return interaction.reply({ content: `Team "${name}" already exists.`, ephemeral: true });
+        return interaction.editReply(`Team "${name}" already exists.`);
       }
 
-      const newTeam = new Team({ name, region });
-      await newTeam.save();
-
-      return interaction.reply({ content: `✅ Team **${name}** (${region}) added successfully.`, ephemeral: true });
+      await new Team({ name, region }).save();
+      return interaction.editReply(`✅ Team **${name}** (${region}) added successfully.`);
     } catch (err) {
       console.error('Error adding team:', err);
-      return interaction.reply({ content: '❌ Failed to add team.', ephemeral: true });
+      // still edit the deferred reply
+      try {
+        return await interaction.editReply('❌ Failed to add team.');
+      } catch {
+        // if somehow already edited, use followUp as a fallback
+        return interaction.followUp({ content: '❌ Failed to add team.', flags: 64 });
+      }
     }
   }
 };
