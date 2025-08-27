@@ -1,11 +1,4 @@
-import './keepalive.js'; // optional if hosting on Replit/etc.
-import './models/Team.js';
-import './models/Player.js';
-import './models/Match.js';
-import './models/Prediction.js';
-import './models/User.js';
-import './models/Phase.js';
-
+import './models/modelsIndex.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
