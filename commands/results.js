@@ -21,6 +21,16 @@ export default {
   data: new SlashCommandBuilder()
     .setName('results')
     .setDescription('Admin: Set final score for a match and award points')
+    .addIntegerOption(o =>
+      o.setName('score_a')
+        .setDescription('Final score for Team A')
+        .setRequired(true)
+    )
+    .addIntegerOption(o =>
+      o.setName('score_b')
+        .setDescription('Final score for Team B')
+        .setRequired(true)
+    )
     .addStringOption(o =>
       o.setName('match_id')
         .setDescription('Match ID (alternative to team/start)')
@@ -40,16 +50,6 @@ export default {
       o.setName('start')
         .setDescription('Start time ISO8601 (if not using match_id)')
         .setRequired(false)
-    )
-    .addIntegerOption(o =>
-      o.setName('score_a')
-        .setDescription('Final score for Team A')
-        .setRequired(true)
-    )
-    .addIntegerOption(o =>
-      o.setName('score_b')
-        .setDescription('Final score for Team B')
-        .setRequired(true)
     )
     /* .setDefaultMemberPermissions(PermissionFlagsBits.Administrator) */,
 

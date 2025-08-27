@@ -12,6 +12,15 @@ export default {
     .setName('lockmatch')
     .setDescription('Admin: Manually lock or unlock a match for tipping')
     .addStringOption(o =>
+      o.setName('action')
+        .setDescription('Lock or unlock')
+        .addChoices(
+          { name: 'Lock',   value: 'lock' },
+          { name: 'Unlock', value: 'unlock' },
+        )
+        .setRequired(true)
+    )
+    .addStringOption(o =>
       o.setName('match_id')
         .setDescription('Match ID (alternative to team/start)')
         .setRequired(false)
@@ -31,15 +40,6 @@ export default {
         .setDescription('Start time ISO8601 (if not using match_id)')
         .setRequired(false)
     )
-    .addStringOption(o =>
-      o.setName('action')
-        .setDescription('Lock or unlock')
-        .addChoices(
-          { name: 'Lock',   value: 'lock' },
-          { name: 'Unlock', value: 'unlock' },
-        )
-        .setRequired(true)
-    )
     /* .setDefaultMemberPermissions(PermissionFlagsBits.Administrator) */,
 
   async execute(interaction) {
@@ -47,11 +47,11 @@ export default {
       return interaction.reply({ content: '❌ Only admins can use this command.', flags: 64 });
     } */
 
+    const action    = interaction.options.getString('action');
     const matchId   = interaction.options.getString('match_id')?.trim() || null;
     const teamAName = interaction.options.getString('team_a')?.trim() || null;
     const teamBName = interaction.options.getString('team_b')?.trim() || null;
     const startStr  = interaction.options.getString('start')?.trim() || null;
-    const action    = interaction.options.getString('action');
 
     await interaction.deferReply({ flags: 64 });
 
@@ -73,28 +73,22 @@ export default {
         if (!teamB) return interaction.editReply(`❌ Team "${teamBName}" not found.`);
         const startTime = parseIsoDate(startStr);
         if (!startTime) return interaction.editReply('❌ Invalid `start`. Use ISO8601 like `2025-10-21T17:00:00Z`.');
-
         match = await Match.findOne({ teamA: teamA._id, teamB: teamB._id, startTime }).populate('teamA teamB');
         if (!match) return interaction.editReply('❌ No match found with those teams and start time.');
       }
 
       if (action === 'lock') {
-        if (match.status === 'completed') {
-          return interaction.editReply('⚠️ Match is completed; cannot change its lock state.');
-        }
+        if (match.status === 'completed') return interaction.editReply('⚠️ Completed match cannot be locked.');
         match.status = 'locked';
       } else {
-        if (match.status === 'completed') {
-          return interaction.editReply('⚠️ Match is completed; cannot unlock.');
-        }
+        if (match.status === 'completed') return interaction.editReply('⚠️ Completed match cannot be unlocked.');
         match.status = 'scheduled';
       }
 
       await match.save();
-
       return interaction.editReply(
         `✅ ${action === 'lock' ? 'Locked' : 'Unlocked'}: **${match.teamA.name} vs ${match.teamB.name}** ` +
-        `(${match.startTime.toISOString()}) — status is now **${match.status}**.`
+        `(${match.startTime.toISOString()}) — status **${match.status}**.`
       );
     } catch (err) {
       console.error('Error locking/unlocking match:', err);
