@@ -1,4 +1,4 @@
-import { SlashCommandBuilder /*, PermissionFlagsBits */ } from 'discord.js';
+import { SlashCommandBuilder, PermissionFlagsBits } from 'discord.js';
 import Team from '../models/Team.js';
 import BonusPrediction from '../models/BonusPrediction.js';
 import User from '../models/User.js';
@@ -12,12 +12,12 @@ export default {
         .setDescription('Comma-separated team names (e.g., "T1, G2, GEN, TES")')
         .setRequired(true)
     )
-    /* .setDefaultMemberPermissions(PermissionFlagsBits.Administrator) */,
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
   async execute(interaction) {
-    /* if (!interaction.memberPermissions?.has(PermissionFlagsBits.Administrator)) {
+    if (!interaction.memberPermissions?.has(PermissionFlagsBits.Administrator)) {
       return interaction.reply({ content: '❌ Only admins can use this command.', flags: 64 });
-    } */
+    }
 
     const raw = interaction.options.getString('teams');
 

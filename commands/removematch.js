@@ -1,4 +1,4 @@
-import { SlashCommandBuilder /*, PermissionFlagsBits */ } from 'discord.js';
+import { SlashCommandBuilder, PermissionFlagsBits } from 'discord.js';
 import Team from '../models/Team.js';
 import Match from '../models/Match.js';
 import Prediction from '../models/Prediction.js';
@@ -13,12 +13,12 @@ export default {
     .addStringOption(o => o.setName('team_a').setDescription('Team A (if not using match_id)').setRequired(false))
     .addStringOption(o => o.setName('team_b').setDescription('Team B (if not using match_id)').setRequired(false))
     .addStringOption(o => o.setName('start').setDescription('Start time ISO8601 (if not using match_id)').setRequired(false))
-    /* .setDefaultMemberPermissions(PermissionFlagsBits.Administrator) */,
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
   async execute(interaction) {
-    /* if (!interaction.memberPermissions?.has(PermissionFlagsBits.Administrator)) {
+    if (!interaction.memberPermissions?.has(PermissionFlagsBits.Administrator)) {
       return interaction.reply({ content: '❌ Only admins can use this command.', flags: 64 });
-    } */
+    }
     await interaction.deferReply({ flags: 64 });
 
     const matchId  = interaction.options.getString('match_id')?.trim() || null;

@@ -1,4 +1,4 @@
-import { SlashCommandBuilder /*, PermissionFlagsBits */ } from 'discord.js';
+import { SlashCommandBuilder, PermissionFlagsBits } from 'discord.js';
 import Team from '../models/Team.js';
 import Match from '../models/Match.js';
 
@@ -40,12 +40,12 @@ export default {
         .setDescription('Start time ISO8601 (if not using match_id)')
         .setRequired(false)
     )
-    /* .setDefaultMemberPermissions(PermissionFlagsBits.Administrator) */,
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
   async execute(interaction) {
-    /* if (!interaction.memberPermissions?.has(PermissionFlagsBits.Administrator)) {
+    if (!interaction.memberPermissions?.has(PermissionFlagsBits.Administrator)) {
       return interaction.reply({ content: '❌ Only admins can use this command.', flags: 64 });
-    } */
+    }
 
     const action    = interaction.options.getString('action');
     const matchId   = interaction.options.getString('match_id')?.trim() || null;

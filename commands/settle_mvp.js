@@ -1,4 +1,4 @@
-import { SlashCommandBuilder /*, PermissionFlagsBits */ } from 'discord.js';
+import { SlashCommandBuilder, PermissionFlagsBits } from 'discord.js';
 import Player from '../models/Player.js';
 import BonusPrediction from '../models/BonusPrediction.js';
 import User from '../models/User.js';
@@ -16,12 +16,12 @@ export default {
         .setDescription('Actual MVP (player name)')
         .setRequired(true)
     )
-    /* .setDefaultMemberPermissions(PermissionFlagsBits.Administrator) */,
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
   async execute(interaction) {
-    /* if (!interaction.memberPermissions?.has(PermissionFlagsBits.Administrator)) {
+    if (!interaction.memberPermissions?.has(PermissionFlagsBits.Administrator)) {
       return interaction.reply({ content: '❌ Only admins can use this command.', flags: 64 });
-    } */
+    }
 
     const actualNameRaw = interaction.options.getString('player');
     await interaction.deferReply({ flags: 64 });

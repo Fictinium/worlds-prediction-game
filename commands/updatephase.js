@@ -1,4 +1,4 @@
-import { SlashCommandBuilder /*, PermissionFlagsBits */ } from 'discord.js';
+import { SlashCommandBuilder, PermissionFlagsBits } from 'discord.js';
 import Phase from '../models/Phase.js';
 
 export default {
@@ -16,12 +16,12 @@ export default {
         )
         .setRequired(true)
     )
-    /* .setDefaultMemberPermissions(PermissionFlagsBits.Administrator) */,
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
   async execute(interaction) {
-    /* if (!interaction.memberPermissions?.has(PermissionFlagsBits.Administrator)) {
+    if (!interaction.memberPermissions?.has(PermissionFlagsBits.Administrator)) {
       return interaction.reply({ content: '❌ Only admins can use this command.', flags: 64 });
-    } */
+    }
 
     const phase = interaction.options.getString('phase');
 

@@ -1,4 +1,4 @@
-import { SlashCommandBuilder /*, PermissionFlagsBits */ } from 'discord.js';
+import { SlashCommandBuilder, PermissionFlagsBits } from 'discord.js';
 import Team from '../models/Team.js';
 import BonusPrediction from '../models/BonusPrediction.js';
 import User from '../models/User.js';
@@ -8,12 +8,12 @@ export default {
     .setName('settle_winner')
     .setDescription('Admin: Set the actual Worlds winner and award bonus points (+4)')
     .addStringOption(o => o.setName('team').setDescription('Actual winner team name').setRequired(true))
-    /* .setDefaultMemberPermissions(PermissionFlagsBits.Administrator) */,
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
   async execute(interaction) {
-    /* if (!interaction.memberPermissions?.has(PermissionFlagsBits.Administrator)) {
+    if (!interaction.memberPermissions?.has(PermissionFlagsBits.Administrator)) {
       return interaction.reply({ content: '❌ Only admins can use this command.', flags: 64 });
-    } */
+    }
     const teamName = interaction.options.getString('team').trim();
     await interaction.deferReply({ flags: 64 });
 

@@ -1,4 +1,4 @@
-import { SlashCommandBuilder /*, PermissionFlagsBits */ } from 'discord.js';
+import { SlashCommandBuilder, PermissionFlagsBits } from 'discord.js';
 import Team from '../models/Team.js';
 import Player from '../models/Player.js';
 import Match from '../models/Match.js';
@@ -10,12 +10,12 @@ export default {
     .setDescription('Admin: Remove a team and its players. Optionally remove matches & predictions.')
     .addStringOption(o => o.setName('name').setDescription('Exact team name').setRequired(true))
     .addBooleanOption(o => o.setName('force').setDescription('Also delete matches & predictions').setRequired(false))
-    /* .setDefaultMemberPermissions(PermissionFlagsBits.Administrator) */,
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
   async execute(interaction) {
-    /* if (!interaction.memberPermissions?.has(PermissionFlagsBits.Administrator)) {
+    if (!interaction.memberPermissions?.has(PermissionFlagsBits.Administrator)) {
       return interaction.reply({ content: '❌ Only admins can use this command.', flags: 64 });
-    } */
+    }
     const name = interaction.options.getString('name').trim();
     const force = interaction.options.getBoolean('force') ?? false;
 

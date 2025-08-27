@@ -1,4 +1,4 @@
-import { SlashCommandBuilder /*, PermissionFlagsBits */ } from 'discord.js';
+import { SlashCommandBuilder, PermissionFlagsBits } from 'discord.js';
 import Team from '../models/Team.js';
 
 export default {
@@ -15,12 +15,12 @@ export default {
         .setDescription('Region of the team (e.g., EU, NA, KR)')
         .setRequired(true)
     )
-    /*.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)*/,
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
   async execute(interaction) {
-    /*if (!interaction.memberPermissions.has(PermissionFlagsBits.Administrator)) {
+    if (!interaction.memberPermissions.has(PermissionFlagsBits.Administrator)) {
       return interaction.reply({ content: '❌ Only admins can use this command.', flags: 64 });
-    }*/
+    }
 
     const name = interaction.options.getString('name').trim();
     const region = interaction.options.getString('region').trim();
