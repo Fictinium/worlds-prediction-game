@@ -20,9 +20,10 @@ export default {
       const users = await User.find().sort({ totalPoints: -1 }).limit(limit).lean();
       if (!users.length) return interaction.editReply('No standings available yet.');
 
-      const lines = users.map((u, i) =>
-        `**${i + 1}.** ${u.username || u.discordId} — ${u.totalPoints} pts`
-      );
+      const lines = users.map((u, i) => {
+        const label = u.username || (u.discordId ? `<@${u.discordId}>` : '(unknown)');
+        return `**${i + 1}.** ${label} — ${u.totalPoints ?? 0} pts`;
+      });
 
       const embed = new EmbedBuilder()
         .setTitle('🏆 Leaderboard')

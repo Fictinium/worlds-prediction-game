@@ -76,7 +76,7 @@ export default {
       // Upsert user
       const user = await User.findOneAndUpdate(
         { discordId: interaction.user.id },
-        { $setOnInsert: { discordId: interaction.user.id, username: interaction.user.tag } },
+        { $set: { username: interaction.user.tag } },
         { upsert: true, new: true }
       );
 

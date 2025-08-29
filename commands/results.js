@@ -103,29 +103,30 @@ export default {
         );
       }
 
-      // Score predictions (idempotent: apply delta to users)
       let totalAwarded = 0;
+
       for (const p of preds) {
         const newPts = pointsFor(p.scoreA, p.scoreB, scoreA, scoreB);
         const delta = newPts - (p.points || 0);
 
         if (delta !== 0) {
-          // Update prediction points
+          // 1) update prediction points
           p.points = newPts;
           await p.save();
 
-          // Upsert user and apply delta totals
-          const user = await User.findOneAndUpdate(
-            { discordId: p.user.toString() }, // NOTE: we stored ObjectId for user earlier? If you prefer, store discordId directly in Prediction to avoid this.
-            { $setOnInsert: { discordId: p.user.toString(), username: 'unknown' } },
-            { upsert: true, new: true }
-          );
+          // 2) update the *actual* user that this prediction references
+          const user = await User.findById(p.user);
+          if (!user) {
+            // If somehow missing, skip (or you could create it here if you want)
+            continue;
+          }
 
-          // Update totals
           user.totalPoints = (user.totalPoints || 0) + delta;
           const ph = match.phase; // 'group_stage' | 'top_4' | 'finals'
           if (!user.phasePoints) user.phasePoints = {};
           user.phasePoints[ph] = (user.phasePoints[ph] || 0) + delta;
+
+          // (optional) keep username fresh if available from Discord elsewhere
           await user.save();
 
           totalAwarded += delta;
